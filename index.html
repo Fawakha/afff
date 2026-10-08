@@ -31,35 +31,63 @@
 
     <h1>АРСЕНАЛ</h1>
     <div id="inventory-container">
-    
+    <button onclick="LoadItems('All')">Всі предмети</button>
+    <button onclick="LoadItems('Gun')">Зброя</button>
+    <button onclick="LoadItems('knife')">Ножі</button>
+    <button onclick="AddNewItem()">Додати предмет</button>
     </div>
 
     <script>
-       
-        fetch('http://localhost:5284/inventory')
-            .then(response => response.json()) 
-            .then(items => {
-                const container = document.getElementById('inventory-container');
-                
-                // Проходимося по кожному предмету і малюємо для нього HTML-картку
-                items.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    
-                    card.innerHTML = `
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-type">${item.type}</div>
-                        <div class="wear">Wear: ${item.wear}</div>
-                        <div class="price">$${item.price}</div>
-                    `;
-                    
-                    container.appendChild(card);
+        function LoadItems(type) {
+            fetch(`http://localhost:5284/inventory/${type}`)
+                .then(response => response.json())
+                .then(items => {
+                    const container = document.getElementById('inventory-container');
+                    container.innerHTML = ''; 
+                    items.forEach(item => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        
+                        card.innerHTML = `
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-type">${item.type}</div>
+                            <div class="wear">Wear: ${item.wear}</div>
+                            <div class="price">$${item.price}</div>
+                        `;
+                        
+                        container.appendChild(card);
+                    });
+                })
+                .catch(error => {
+                    console.error('Помилка підключення до сервера:', error);
+                    document.getElementById('inventory-container').innerHTML = '<p style="color:red;">Сервер не відповідає. Перевір, чи запущений .NET!</p>';
                 });
-            })
-            .catch(error => {
-                console.error('Помилка підключення до сервера:', error);
-                document.getElementById('inventory-container').innerHTML = '<p style="color:red;">Сервер не відповідає. Перевір, чи запущений .NET!</p>';
-            });
+        }
+        function AddNewItem() {
+            const name = prompt("Введіть назву предмета:");
+            const type = prompt("Введіть тип предмета (Gun, knife):");
+            const wear = prompt("Введіть стан предмета (0-1):");
+            const price = prompt("Введіть ціну предмета:");
+
+            if (name && type && wear && price) {
+                fetch('http://localhost:5284/inventory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, type, wear: parseFloat(wear), price: parseFloat(price) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Предмет додано успішно!');
+                    LoadItems('All'); 
+                })
+                .catch(error => {
+                    console.error('Помилка при додаванні предмета:', error);
+                    alert('Не вдалося додати предмет. Перевірте сервер.');
+                });
+            } else {
+                alert('Будь ласка, заповніть всі поля.');
+            }
+        }
     </script>
 
 </body>
