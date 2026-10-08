@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Мій Інвентар</title>
+    <style>
+       
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1b2838; color: white; padding: 40px; }
+        h1 { text-align: center; color: #c7d5e0; letter-spacing: 2px; }
+        #inventory-container { display: flex; gap: 20px; justify-content: center; margin-top: 40px; flex-wrap: wrap; }
+        
+    
+        .card { 
+            background: linear-gradient(145deg, #2a475e, #171a21); 
+            border: 1px solid #66c0f4; 
+            border-radius: 8px; 
+            padding: 20px; 
+            width: 220px; 
+            text-align: center; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.6); 
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .item-name { font-size: 1.4em; font-weight: bold; color: #eb4b4b; margin-bottom: 5px; } /* Червоний колір для крутих предметів */
+        .item-type { color: #8f98a0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; }
+        .wear { font-size: 0.9em; color: #c7d5e0; margin-top: 15px; }
+        .price { color: #a4d007; font-weight: bold; font-size: 1.3em; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>АРСЕНАЛ</h1>
+    <div id="inventory-container">
+    
+    </div>
+
+    <script>
+       
+        fetch('http://localhost:5284/inventory')
+            .then(response => response.json()) 
+            .then(items => {
+                const container = document.getElementById('inventory-container');
+                
+                // Проходимося по кожному предмету і малюємо для нього HTML-картку
+                items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    
+                    card.innerHTML = `
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-type">${item.type}</div>
+                        <div class="wear">Wear: ${item.wear}</div>
+                        <div class="price">$${item.price}</div>
+                    `;
+                    
+                    container.appendChild(card);
+                });
+            })
+            .catch(error => {
+                console.error('Помилка підключення до сервера:', error);
+                document.getElementById('inventory-container').innerHTML = '<p style="color:red;">Сервер не відповідає. Перевір, чи запущений .NET!</p>';
+            });
+    </script>
+
+</body>
+</html>
