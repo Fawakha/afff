@@ -30,12 +30,19 @@
 <body>
 
     <h1>АРСЕНАЛ</h1>
-    <div id="inventory-container">
     <button onclick="LoadItems('All')">Всі предмети</button>
     <button onclick="LoadItems('Gun')">Зброя</button>
     <button onclick="LoadItems('knife')">Ножі</button>
-    <button onclick="AddNewItem()">Додати предмет</button>
     </div>
+
+    <div class = "form-container"> 
+        <input type="text" id="item-name" placeholder="Назва предмета">
+        <input type="text" id="item-type" placeholder="Тип предмета">
+        <input type="number" id="item-wear" step="0.01" placeholder="Стан предмета">
+        <input type="number" id="item-price" step="0.01" placeholder="Ціна предмета">
+        <button onclick="AddNewItem()">Додати предмет</button>
+    </div>
+    <div id="inventory-container"></div>
 
     <script>
         function LoadItems(type) {
@@ -49,6 +56,8 @@
                         card.className = 'card';
                         
                         card.innerHTML = `
+                            <h3>${item.name}</h3>
+                            <button onclick="DeleteItem(${item.id})">Видалити</button>
                             <div class="item-name">${item.name}</div>
                             <div class="item-type">${item.type}</div>
                             <div class="wear">Wear: ${item.wear}</div>
@@ -63,30 +72,55 @@
                     document.getElementById('inventory-container').innerHTML = '<p style="color:red;">Сервер не відповідає. Перевір, чи запущений .NET!</p>';
                 });
         }
-        function AddNewItem() {
-            const name = prompt("Введіть назву предмета:");
-            const type = prompt("Введіть тип предмета (Gun, knife):");
-            const wear = prompt("Введіть стан предмета (0-1):");
-            const price = prompt("Введіть ціну предмета:");
+function AddNewItem() {
+    const name = document.getElementById('item-name').value;
+    const type = document.getElementById('item-type').value;
+    const wear = document.getElementById('item-wear').value;
+    const price = document.getElementById('item-price').value;
 
-            if (name && type && wear && price) {
-                fetch('http://localhost:5284/inventory', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, type, wear: parseFloat(wear), price: parseFloat(price) })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert('Предмет додано успішно!');
+    if (name && type && wear && price) {
+        fetch('http://localhost:5284/inventory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                name: name, 
+                type: type, 
+                wear: parseFloat(wear), 
+                price: parseFloat(price) 
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Предмет додано успішно!');
+            
+
+            document.getElementById('item-name').value = '';
+            document.getElementById('item-type').value = '';
+            document.getElementById('item-wear').value = '';
+            document.getElementById('item-price').value = '';
+
+            LoadItems('All'); 
+        })
+        .catch(error => {
+            console.error('Помилка при додаванні предмета:', error);
+            alert('Не вдалося додати предмет. Перевірте сервер.');
+        });
+    } else {
+        alert('Будь ласка, заповніть всі поля.');
+    }
+}
+        function DeleteItem(id) { 
+            fetch(`http://localhost:5284/inventory/${id}`, { 
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Предмет видалено успішно!');
                     LoadItems('All'); 
-                })
-                .catch(error => {
-                    console.error('Помилка при додаванні предмета:', error);
-                    alert('Не вдалося додати предмет. Перевірте сервер.');
-                });
-            } else {
-                alert('Будь ласка, заповніть всі поля.');
-            }
+                } else {
+                    alert('Не вдалося видалити предмет. Перевірте сервер.');
+                }
+            })
         }
     </script>
 

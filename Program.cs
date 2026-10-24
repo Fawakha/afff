@@ -44,4 +44,15 @@ app.MapPost("/inventory", (InventoryDbContext db, Item item) =>
     db.SaveChanges();
     return Results.Ok(item);
 });
+app.MapDelete("/inventory/{id}", (InventoryDbContext db, int id) =>
+{
+    var item = db.Items.Find(id); 
+    if (item == null)
+    {
+        return Results.NotFound(" Предмета не існує");
+    }
+    db.Items.Remove(item); 
+    db.SaveChanges();
+    return Results.Ok(" Предмет видалено"); 
+}); 
 app.Run();
