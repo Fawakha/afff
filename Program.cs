@@ -40,8 +40,24 @@ if (type == "All")
 });
 app.MapPost("/inventory", (InventoryDbContext db, Item item) =>
 {
+    if (string.IsNullOrWhiteSpace(item.Name))
+    {
+        return Results.BadRequest("Назва не може бути порожньою");
+    }
+
+    if (item.Price <= 0)
+    {
+        return Results.BadRequest("Ціна повинна бути більше нуля");
+    }
+
+    if (item.Wear < 0 || item.Wear > 1)
+    {
+        return Results.BadRequest("Стан повинен бути від 0 до 1");
+    }
+    
     db.Items.Add(item);
     db.SaveChanges();
+
     return Results.Ok(item);
 });
 app.MapDelete("/inventory/{id}", (InventoryDbContext db, int id) =>

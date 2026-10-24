@@ -37,7 +37,10 @@
 
     <div class = "form-container"> 
         <input type="text" id="item-name" placeholder="Назва предмета">
-        <input type="text" id="item-type" placeholder="Тип предмета">
+        <select id ="item-type"> 
+            <option value="Gun">Зброя</option>
+            <option value="knife">Ножі</option>
+        </select>
         <input type="number" id="item-wear" step="0.01" placeholder="Стан предмета">
         <input type="number" id="item-price" step="0.01" placeholder="Ціна предмета">
         <button onclick="AddNewItem()">Додати предмет</button>
@@ -89,21 +92,25 @@ function AddNewItem() {
                 price: parseFloat(price) 
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            alert('Предмет додано успішно!');
-            
+        .then(response => {
+            if (response.ok) {
+                alert('Предмет додано успішно!');
 
-            document.getElementById('item-name').value = '';
-            document.getElementById('item-type').value = '';
-            document.getElementById('item-wear').value = '';
-            document.getElementById('item-price').value = '';
+                document.getElementById('item-name').value = '';
+                document.getElementById('item-type').value = '';
+                document.getElementById('item-wear').value = '';
+                document.getElementById('item-price').value = '';
 
-            LoadItems('All'); 
+                LoadItems('All');
+            } else {
+                response.text().then(errorMessage => {
+                    alert('Помилка від сервера: ' + errorMessage);
+                });
+            }
         })
         .catch(error => {
-            console.error('Помилка при додаванні предмета:', error);
-            alert('Не вдалося додати предмет. Перевірте сервер.');
+            console.error('Помилка мережі:', error);
+            alert('Не вдалося зв’язатися із сервером.');
         });
     } else {
         alert('Будь ласка, заповніть всі поля.');
