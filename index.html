@@ -30,6 +30,9 @@
 <body>
 
     <h1>АРСЕНАЛ</h1>
+     <div id="stats-container" style="text-align: center; margin-bottom: 20px; font-size: 1.2em; color: #a4d007;">
+    Завантаження статистики...
+    </div>
     <button onclick="LoadItems('All')">Всі предмети</button>
     <button onclick="LoadItems('Gun')">Зброя</button>
     <button onclick="LoadItems('knife')">Ножі</button>
@@ -48,6 +51,7 @@
     <div id="inventory-container"></div>
 
     <script>
+        LoadStats();
         function LoadItems(type) {
             fetch(`http://localhost:5284/inventory/${type}`)
                 .then(response => response.json())
@@ -65,6 +69,7 @@
                             <div class="item-type">${item.type}</div>
                             <div class="wear">Wear: ${item.wear}</div>
                             <div class="price">$${item.price}</div>
+                            <button onclick="UpdatePrice(${item.id}, '${item.name}', '${item.type}', ${item.wear}, ${item.price})">Оновити ціну</button>
                         `;
                         
                         container.appendChild(card);
@@ -102,6 +107,7 @@ function AddNewItem() {
                 document.getElementById('item-price').value = '';
 
                 LoadItems('All');
+                LoadStats(); 
             } else {
                 response.text().then(errorMessage => {
                     alert('Помилка від сервера: ' + errorMessage);
@@ -123,12 +129,50 @@ function AddNewItem() {
             .then(response => {
                 if (response.ok) {
                     alert('Предмет видалено успішно!');
-                    LoadItems('All'); 
+                    LoadItems('All');
+                    LoadStats(); 
                 } else {
-                    alert('Не вдалося видалити предмет. Перевірте сервер.');
+                    alert('Не вдалося видалити предмет. Перевірте сервер.'); 
                 }
             })
         }
+        function UpdatePrice(id, name, type, wear) { 
+            const newPrice = prompt('Введіть нову ціну:');
+            if (!newPrice) return;
+            fetch (`http://localhost:5284/inventory/${id}`, { 
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({  
+                    name: name,
+                    type: type,
+                    wear: wear,
+                    price: parseFloat(newPrice) 
+                })
+            })  
+            .then(response => {
+                if (response.ok) {
+                    alert('Ціна оновлена успішно!');
+                    LoadItems('All');
+                    LoadStats();  
+                } else {
+                    alert('Не вдалося оновити ціну. Перевірте сервер.');
+                }
+            })
+        }
+        function LoadStats() {
+            fetch('http://localhost:5284/inventory/stats')
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Дані з сервера:", data);
+                    document.getElementById('stats-container').innerText = 
+                    `Загальна кількість предметів: ${data.totalitems} | Загальна сума: ${data.totalsum}`;
+                })
+                .catch(error => {
+                    console.error('Помилка підключення до сервера:', error);
+                });
+
+        }
+        LoadStats();
     </script>
 
 </body>
