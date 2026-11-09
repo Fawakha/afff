@@ -106,5 +106,25 @@ app.MapPut("/inventory/{id}", (InventoryDbContext db, int id, Item updateItem) =
 
     return Results.Ok(item);
 });
+app.MapGet("/inventory/filter", (InventoryDbContext db, decimal? maxWear, string? sortBy) =>
+{
+    var query = db.Items.AsQueryable(); 
+    if (maxWear.HasValue)
+    {
+        query = query.Where(item => item.Wear <= maxWear.Value); 
+    }
+    if (sortBy == "price_desc")
+    {
+          query = query.OrderByDescending(item => item.Price);
+    }
+    if (sortBy == "price_asc")
+    { 
+     query = query.OrderBy(item => item.Price); 
+    } 
+
+return query.ToList(); 
+});
+    
+
 
 app.Run();
