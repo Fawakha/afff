@@ -47,8 +47,9 @@
     <div class = "form-container"> 
         <input type="text" id="item-name" placeholder="Назва предмета">
         <select id ="item-type"> 
-            <option value="Gun">Зброя</option>
-            <option value="knife">Ножі</option>
+            <option value="1">Зброя</option>
+            <option value="2">Ножі</option>
+            <option value="3">Рукавиці</option>
         </select>
         <input type="number" id="item-wear" step="0.01" placeholder="Стан предмета">
         <input type="number" id="item-price" step="0.01" placeholder="Ціна предмета">
@@ -70,17 +71,17 @@
         }
 function AddNewItem() {
     const name = document.getElementById('item-name').value;
-    const type = document.getElementById('item-type').value;
+    const CategoryId = parseInt(document.getElementById('item-type').value);
     const wear = document.getElementById('item-wear').value;
     const price = document.getElementById('item-price').value;
 
-    if (name && type && wear && price) {
+    if (name && CategoryId && wear && price) {
         fetch('http://localhost:5284/inventory', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 name: name, 
-                type: type, 
+                CategoryId: CategoryId, 
                 wear: parseFloat(wear), 
                 price: parseFloat(price) 
             })
@@ -90,7 +91,7 @@ function AddNewItem() {
                 alert('Предмет додано успішно!');
 
                 document.getElementById('item-name').value = '';
-                document.getElementById('item-type').value = '';
+                document.getElementById('item-type').value = '1';
                 document.getElementById('item-wear').value = '';
                 document.getElementById('item-price').value = '';
 

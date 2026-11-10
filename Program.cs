@@ -44,7 +44,7 @@ if (type == "All")
     }
     else
     {
-        return db.Items.Where(items => items.Type == type).ToList();
+        return db.Items.Where(items => items.Category.Name == type).ToList();
     }
 });
 app.MapPost("/inventory", (InventoryDbContext db, Item item) =>
@@ -98,7 +98,7 @@ app.MapPut("/inventory/{id}", (InventoryDbContext db, int id, Item updateItem) =
         return Results.BadRequest("Ціна повинна бути більше нуля, а стан повинен бути від 0 до 1");
     }
     item.Name = updateItem.Name;
-    item.Type = updateItem.Type;
+    item.CategoryId = updateItem.CategoryId;
     item.Price = updateItem.Price;
     item.Wear = updateItem.Wear;
 
