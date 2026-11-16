@@ -38,6 +38,7 @@
     <button onclick="LoadItems('All')">Всі предмети</button>
     <button onclick="LoadItems('Gun')">Зброя</button>
     <button onclick="LoadItems('knife')">Ножі</button>
+    <button onclick="LoadItems('Gloves')">Рукавичі</button>
     <select id="sortSelect" onchange="ApplyFilters()">
         <option value="">Сортувати за...</option>
         <option value="price_desc">Ціна: Висока до Низької</option>
@@ -46,11 +47,7 @@
 
     <div class = "form-container"> 
         <input type="text" id="item-name" placeholder="Назва предмета">
-        <select id ="item-type"> 
-            <option value="1">Зброя</option>
-            <option value="2">Ножі</option>
-            <option value="3">Рукавиці</option>
-        </select>
+        <select id ="item-type"></select>
         <input type="number" id="item-wear" step="0.01" placeholder="Стан предмета">
         <input type="number" id="item-price" step="0.01" placeholder="Ціна предмета">
         <button onclick="AddNewItem()">Додати предмет</button>
@@ -59,6 +56,7 @@
 
     <script>
         LoadStats();
+        LoadCategories(); 
         function LoadItems(type) {
             fetch(`http://localhost:5284/inventory/${type}`)
                 .then(response => response.json())
@@ -125,7 +123,7 @@ function AddNewItem() {
                 }
             })
         }
-        function UpdatePrice(id, name, type, wear) { 
+        function UpdatePrice(id, name, categoryId, wear) { 
             const newPrice = prompt('Введіть нову ціну:');
             if (!newPrice) return;
             fetch (`http://localhost:5284/inventory/${id}`, { 
@@ -133,7 +131,7 @@ function AddNewItem() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({  
                     name: name,
-                    type: type,
+                    categoryId: categoryId,
                     wear: wear,
                     price: parseFloat(newPrice) 
                 })
@@ -175,6 +173,7 @@ function ApplyFilters() {
         LoadStats();
              function RenderItems(items) {
                 const container = document.getElementById('inventory-container');
+                const categoryNames = {1: 'Зброя', 2: 'Ножі', 3: 'Рукавиці'};
                 container.innerHTML = ''; 
                 items.forEach(item => {
                 const card = document.createElement('div');
@@ -183,14 +182,30 @@ function ApplyFilters() {
                     <h3>${item.name}</h3>
                     <button onclick="DeleteItem(${item.id})">Видалити</button>
                     <div class="item-name">${item.name}</div>
-                    <div class="item-type">${item.type}</div>
+                    <div class= "item-type"> ${categoryNames[item.categoryId] ||'інше'}</div> 
                     <div class="wear">Wear: ${item.wear}</div>
                     <div class="price">$${item.price}</div>
-                    <button onclick="UpdatePrice(${item.id}, '${item.name}', '${item.type}', ${item.wear})">Оновити ціну</button>
+                    <button onclick="UpdatePrice(${item.id}, '${item.name}', '${item.categoryId}', ${item.wear})">Оновити ціну</button>
         `;
         container.appendChild(card);
     });
 }
+function LoadCategories() {
+    fetch('http://localhost:5284/categories')
+    .then(response => response.json())
+    .then(Categories => {
+        const select = document.getElementById('item-type')
+        select.innerHTML = '';
+        Categories.forEach(Categories => { 
+            const option = document.createElement('option');
+            option.value = Categories.id; 
+            option.textContent = Categories.name; 
+            select.appendChild(option);
+        });
+    }) 
+    .catch(error => console.error('Помилка завантаження категорій:', error));
+}
+LoadCategories(); 
     </script>
 
 </body>

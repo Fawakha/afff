@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using InventoryApi;
+using Inventory.API;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +26,14 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/inventory", (InventoryDbContext db) =>
 {
-    return db.Items.ToList(); 
+    return db.Items
+        .Include(item => item.Category)
+        .ToList();
 });
+app.MapGet("/categories", (InventoryDbContext db) =>
+{
+    return db.Categories.ToList();
+}); 
 
 app.MapGet("/inventory/stats", ( InventoryDbContext db) =>
 {
@@ -40,11 +47,15 @@ app.MapGet("/inventory/{type}", (InventoryDbContext db, string type) =>
 {
 if (type == "All")
     {
-        return db.Items.ToList();
+        return db.Items
+        .Include(item => item.Category)
+        .ToList();
     }
     else
     {
-        return db.Items.Where(items => items.Category.Name == type).ToList();
+        return db.Items.Where(items => items.Category.Name == type)
+        .Include(item => item.Category)
+        .ToList();
     }
 });
 app.MapPost("/inventory", (InventoryDbContext db, Item item) =>
@@ -62,6 +73,10 @@ app.MapPost("/inventory", (InventoryDbContext db, Item item) =>
     if (item.Wear < 0 || item.Wear > 1)
     {
         return Results.BadRequest("Стан повинен бути від 0 до 1");
+    }
+    if (!db.Categories.Any(c=> c.Id == item.CategoryId))
+    {
+        return Results.BadRequest("Вказаної категорії не існує."); 
     }
     
     db.Items.Add(item);
@@ -122,7 +137,9 @@ app.MapGet("/inventory/filter", (InventoryDbContext db, decimal? maxWear, string
      query = query.OrderBy(item => item.Price); 
     } 
 
-return query.ToList(); 
+    return query
+        .Include(item => item.Category)
+        .ToList();
 });
     
 
