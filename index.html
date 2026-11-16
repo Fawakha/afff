@@ -3,210 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <title>Мій Інвентар</title>
-    <style>
-       
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1b2838; color: white; padding: 40px; }
-        h1 { text-align: center; color: #c7d5e0; letter-spacing: 2px; }
-        #inventory-container { display: flex; gap: 20px; justify-content: center; margin-top: 40px; flex-wrap: wrap; }
-        
-    
-        .card { 
-            background: linear-gradient(145deg, #2a475e, #171a21); 
-            border: 1px solid #66c0f4; 
-            border-radius: 8px; 
-            padding: 20px; 
-            width: 220px; 
-            text-align: center; 
-            box-shadow: 0 8px 16px rgba(0,0,0,0.6); 
-            transition: transform 0.2s;
-        }
-        .card:hover { transform: translateY(-5px); }
-        .item-name { font-size: 1.4em; font-weight: bold; color: #eb4b4b; margin-bottom: 5px; }
-        .item-type { color: #8f98a0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; }
-        .wear { font-size: 0.9em; color: #c7d5e0; margin-top: 15px; }
-        .price { color: #a4d007; font-weight: bold; font-size: 1.3em; margin-top: 10px; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <h1>АРСЕНАЛ</h1>
-     <div id="stats-container" style="text-align: center; margin-bottom: 20px; font-size: 1.2em; color: #a4d007;">
-    Завантаження статистики...
+
+    <div id="stats-container" style="text-align: center; margin-bottom: 20px; font-size: 1.2em; color: #a4d007;">
+        Завантаження статистики...
     </div>
+
     <div id="filter-container" style="text-align: center; margin-bottom: 20px; font-size: 1.2em; color: #a4d007;">
     </div>
+
     <button onclick="LoadItems('All')">Всі предмети</button>
     <button onclick="LoadItems('Gun')">Зброя</button>
     <button onclick="LoadItems('knife')">Ножі</button>
     <button onclick="LoadItems('Gloves')">Рукавичі</button>
+
     <select id="sortSelect" onchange="ApplyFilters()">
         <option value="">Сортувати за...</option>
         <option value="price_desc">Ціна: Висока до Низької</option>
         <option value="price_asc">Ціна: Низька до Високої</option>
     </select>
 
-    <div class = "form-container"> 
+    <div class="form-container">
         <input type="text" id="item-name" placeholder="Назва предмета">
-        <select id ="item-type"></select>
+        <select id="item-type"></select>
         <input type="number" id="item-wear" step="0.01" placeholder="Стан предмета">
         <input type="number" id="item-price" step="0.01" placeholder="Ціна предмета">
         <button onclick="AddNewItem()">Додати предмет</button>
     </div>
+
     <div id="inventory-container"></div>
 
-    <script>
-        LoadStats();
-        LoadCategories(); 
-        function LoadItems(type) {
-            fetch(`http://localhost:5284/inventory/${type}`)
-                .then(response => response.json())
-                .then(items => {
-                    RenderItems(items);
-                    
-                })
-                .catch(error => console.error('Помилка підключення до сервера:', error));
-                    
-        }
-function AddNewItem() {
-    const name = document.getElementById('item-name').value;
-    const CategoryId = parseInt(document.getElementById('item-type').value);
-    const wear = document.getElementById('item-wear').value;
-    const price = document.getElementById('item-price').value;
-
-    if (name && CategoryId && wear && price) {
-        fetch('http://localhost:5284/inventory', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                name: name, 
-                CategoryId: CategoryId, 
-                wear: parseFloat(wear), 
-                price: parseFloat(price) 
-            })
-        })
-        .then(response => {
-            if (response.ok) {
-                alert('Предмет додано успішно!');
-
-                document.getElementById('item-name').value = '';
-                document.getElementById('item-type').value = '1';
-                document.getElementById('item-wear').value = '';
-                document.getElementById('item-price').value = '';
-
-                LoadItems('All');
-                LoadStats(); 
-            } else {
-                response.text().then(errorMessage => {
-                    alert('Помилка від сервера: ' + errorMessage);
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Помилка мережі:', error);
-            alert('Не вдалося зв’язатися із сервером.');
-        });
-    } else {
-        alert('Будь ласка, заповніть всі поля.');
-    }
-}
-        function DeleteItem(id) { 
-            fetch(`http://localhost:5284/inventory/${id}`, { 
-                method: 'DELETE'
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('Предмет видалено успішно!');
-                    LoadItems('All');
-                    LoadStats(); 
-                } else {
-                    alert('Не вдалося видалити предмет. Перевірте сервер.'); 
-                }
-            })
-        }
-        function UpdatePrice(id, name, categoryId, wear) { 
-            const newPrice = prompt('Введіть нову ціну:');
-            if (!newPrice) return;
-            fetch (`http://localhost:5284/inventory/${id}`, { 
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({  
-                    name: name,
-                    categoryId: categoryId,
-                    wear: wear,
-                    price: parseFloat(newPrice) 
-                })
-            })  
-            .then(response => {
-                if (response.ok) {
-                    alert('Ціна оновлена успішно!');
-                    LoadItems('All');
-                    LoadStats();  
-                } else {
-                    alert('Не вдалося оновити ціну. Перевірте сервер.');
-                }
-            })
-        }
-function ApplyFilters() { 
-    const sortBy = document.getElementById('sortSelect').value;
-    fetch(`http://localhost:5284/inventory/filter?sortBy=${sortBy}`)
-        .then(response => response.json())
-        .then(items => {
-            RenderItems(items);
-        })
-        .catch(error => {
-            console.error('Помилка підключення до сервера:', error);
-        });
-}
-        function LoadStats() {
-            fetch('http://localhost:5284/inventory/stats')
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Дані з сервера:", data);
-                    document.getElementById('stats-container').innerText = 
-                    `Загальна кількість предметів: ${data.totalitems} | Загальна сума: ${data.totalsum}`;
-                })
-                .catch(error => {
-                    console.error('Помилка підключення до сервера:', error);
-                });
-
-        }
-        LoadStats();
-             function RenderItems(items) {
-                const container = document.getElementById('inventory-container');
-                const categoryNames = {1: 'Зброя', 2: 'Ножі', 3: 'Рукавиці'};
-                container.innerHTML = ''; 
-                items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <h3>${item.name}</h3>
-                    <button onclick="DeleteItem(${item.id})">Видалити</button>
-                    <div class="item-name">${item.name}</div>
-                    <div class= "item-type"> ${categoryNames[item.categoryId] ||'інше'}</div> 
-                    <div class="wear">Wear: ${item.wear}</div>
-                    <div class="price">$${item.price}</div>
-                    <button onclick="UpdatePrice(${item.id}, '${item.name}', '${item.categoryId}', ${item.wear})">Оновити ціну</button>
-        `;
-        container.appendChild(card);
-    });
-}
-function LoadCategories() {
-    fetch('http://localhost:5284/categories')
-    .then(response => response.json())
-    .then(Categories => {
-        const select = document.getElementById('item-type')
-        select.innerHTML = '';
-        Categories.forEach(Categories => { 
-            const option = document.createElement('option');
-            option.value = Categories.id; 
-            option.textContent = Categories.name; 
-            select.appendChild(option);
-        });
-    }) 
-    .catch(error => console.error('Помилка завантаження категорій:', error));
-}
-LoadCategories(); 
-    </script>
-
+    <script src="script.js"></script>
 </body>
 </html>
