@@ -117,7 +117,6 @@ LoadStats();
 
 function RenderItems(items) {
     const container = document.getElementById('inventory-container');
-    const categoryNames = { 1: 'Зброя', 2: 'Ножі', 3: 'Рукавиці' };
     container.innerHTML = '';
     items.forEach(item => {
         const card = document.createElement('div');
@@ -126,7 +125,7 @@ function RenderItems(items) {
             <h3>${item.name}</h3>
             <button onclick="DeleteItem(${item.id})">Видалити</button>
             <div class="item-name">${item.name}</div>
-            <div class="item-type">${categoryNames[item.categoryId] || 'інше'}</div>
+            <div class="item-type">${item.category?.name || 'без категорії'}</div> 
             <div class="wear">Wear: ${item.wear}</div>
             <div class="price">$${item.price}</div>
             <button onclick="UpdatePrice(${item.id}, '${item.name}', ${item.categoryId}, ${item.wear})">Оновити ціну</button>
@@ -140,12 +139,19 @@ function LoadCategories() {
         .then(response => response.json())
         .then(Categories => {
             const select = document.getElementById('item-type');
+            const filterContainer = document.getElementById('filter-container')
             select.innerHTML = '';
+            filterContainer.innerHTML = ''; 
             Categories.forEach(Categories => {
                 const option = document.createElement('option');
                 option.value = Categories.id;
                 option.textContent = Categories.name;
                 select.appendChild(option);
+
+                const button = document.createElement('button'); 
+                button.textContent = Categories.name
+                button.onclick = () => LoadItems(Categories.name)
+                filterContainer.appendChild(button); 
             });
         })
         .catch(error => console.error('Помилка завантаження категорій:', error));

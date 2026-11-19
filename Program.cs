@@ -17,7 +17,7 @@ var app = builder.Build();
 
 app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
- 
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -33,19 +33,21 @@ app.MapGet("/inventory", (InventoryDbContext db) =>
 app.MapGet("/categories", (InventoryDbContext db) =>
 {
     return db.Categories.ToList();
-}); 
+});
 
-app.MapGet("/inventory/stats", ( InventoryDbContext db) =>
+app.MapGet("/inventory/stats", (InventoryDbContext db) =>
 {
     var count = db.Items.Count();
     var SUM = db.Items.Sum(item => item.Price);
-    return Results.Ok(new 
-    { totalitems = count, 
-    totalsum = SUM });
-}); 
+    return Results.Ok(new
+    {
+        totalitems = count,
+        totalsum = SUM
+    });
+});
 app.MapGet("/inventory/{type}", (InventoryDbContext db, string type) =>
 {
-if (type == "All")
+    if (type == "All")
     {
         return db.Items
         .Include(item => item.Category)
@@ -74,11 +76,11 @@ app.MapPost("/inventory", (InventoryDbContext db, Item item) =>
     {
         return Results.BadRequest("Стан повинен бути від 0 до 1");
     }
-    if (!db.Categories.Any(c=> c.Id == item.CategoryId))
+    if (!db.Categories.Any(c => c.Id == item.CategoryId))
     {
-        return Results.BadRequest("Вказаної категорії не існує."); 
+        return Results.BadRequest("Вказаної категорії не існує.");
     }
-    
+
     db.Items.Add(item);
     db.SaveChanges();
 
@@ -86,18 +88,18 @@ app.MapPost("/inventory", (InventoryDbContext db, Item item) =>
 });
 app.MapDelete("/inventory/{id}", (InventoryDbContext db, int id) =>
 {
-    var item = db.Items.Find(id); 
+    var item = db.Items.Find(id);
     if (item == null)
     {
         return Results.NotFound(" Предмета не існує");
     }
-    db.Items.Remove(item); 
+    db.Items.Remove(item);
     db.SaveChanges();
-    return Results.Ok(" Предмет видалено"); 
-}); 
+    return Results.Ok(" Предмет видалено");
+});
 app.MapPut("/inventory/{id}", (InventoryDbContext db, int id, Item updateItem) =>
 {
-    var item = db.Items.Find(id); 
+    var item = db.Items.Find(id);
     if (item == null)
     {
         return Results.NotFound(" Предмета не існує");
@@ -123,25 +125,23 @@ app.MapPut("/inventory/{id}", (InventoryDbContext db, int id, Item updateItem) =
 });
 app.MapGet("/inventory/filter", (InventoryDbContext db, decimal? maxWear, string? sortBy) =>
 {
-    var query = db.Items.AsQueryable(); 
+    var query = db.Items.AsQueryable();
     if (maxWear.HasValue)
     {
-        query = query.Where(item => item.Wear <= maxWear.Value); 
+        query = query.Where(item => item.Wear <= maxWear.Value);
     }
     if (sortBy == "price_desc")
     {
-          query = query.OrderByDescending(item => item.Price);
+        query = query.OrderByDescending(item => item.Price);
     }
     if (sortBy == "price_asc")
-    { 
-     query = query.OrderBy(item => item.Price); 
-    } 
+    {
+        query = query.OrderBy(item => item.Price);
+    }
 
     return query
         .Include(item => item.Category)
         .ToList();
 });
-    
-
 
 app.Run();
